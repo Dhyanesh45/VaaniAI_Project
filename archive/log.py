@@ -61,7 +61,27 @@ class LogWriter:
         6. If the head's floor is at or above this sequence number, raise Fenced.
         7. Otherwise save the sequence number, add 1 to self.next_seq, return it.
         """
-        raise NotImplementedError("Step 1: write the commit rule")
+        data = json.dumps(records).encode()
+        while True:
+            seq = self.next_seq
+            # Create-only write: never overwrites another writer's batch.
+            created = self.store.put_if_absent(log_key(seq), data)
+            # Re-read the head AFTER the write. Checking before would leave a
+            # gap where a takeover could slip in unnoticed.
+            head, _ = read_head(self.store)
+            if head["epoch"] != self.epoch:
+                raise Fenced(f"epoch moved {self.epoch} -> {head['epoch']}")
+            if not created:
+                # We still own the log, so a stale writer grabbed this slot.
+                # Skip it; its contents were never acknowledged by us.
+                self.next_seq += 1
+                continue
+            if head["floor"] >= seq:
+                # Compaction already covers this number, so our object sits
+                # below the floor where readers ignore it. Not durable.
+                raise Fenced(f"seq {seq} is at or below floor {head['floor']}")
+            self.next_seq += 1
+            return seq
 
 
 def compact(store):
