@@ -36,3 +36,10 @@ Or by hand:
 | `test_similarity_and_model.py` | Similarity quality, snapshot swap, model check |
 
 Set `ARCHIVE_S3_ENDPOINT` to run any test against S3; `run.sh s3` does this.
+
+More checks (all in Docker, nothing else on the machine is touched):
+
+    ./scripts/linux_check.sh        # tests on Linux in 256 MB; compaction in 128 MB (streaming survives, in-RAM is OOM-killed)
+    ./scripts/postgres_compare.sh   # storage, reads and vector search vs Postgres 17 + pgvector
+
+Results and what they mean for the design: `BENCHMARKS.md`.

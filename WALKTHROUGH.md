@@ -316,7 +316,15 @@ It's still evidence for a small case, not a proof (as the doc says; TLA+ next).
    conditional writes. Before choosing any S3-compatible store, run the
    conditional-write probe: create-only returns 412, stale `If-Match` returns 412.
    LocalStack 4.4 and moto 5.2 pass.
-9. **"What I learned"** in the doc must be in your own words.
+9. **Postgres storage claim (measured, see BENCHMARKS.md).** The doc says
+   Postgres ~4.8 TB/year vs 420 GB. Measured: Postgres 6.6 TB/year, but the
+   prototype's JSON+zlib segments are 4.9 TB/year. The 420 GB needs Gorilla +
+   zstd, which is not built. Lead with the operational argument instead, and
+   note that for the version-keeping data model Postgres is ~12× bigger.
+10. **Flat scan vs pgvector (measured).** numpy exact 0.78 ms vs pgvector exact
+   6.2 ms, and HNSW at the same speed only reaches 0.49 recall. This supports
+   the doc's "no index" decision.
+11. **"What I learned"** in the doc must be in your own words.
 
 ---
 
