@@ -3,12 +3,11 @@ import random
 import pytest
 
 from archive.log import Fenced, LogWriter, compact, init_log, read_all
-from archive.store import LocalStore
 
 
 @pytest.fixture
-def store(tmp_path):
-    s = LocalStore(tmp_path)
+def store(new_store):
+    s = new_store()
     init_log(s)
     return s
 
@@ -86,9 +85,9 @@ class InterruptingStore:
 
 
 @pytest.mark.parametrize("seed", range(300))
-def test_acknowledged_data_survives_random_takeovers(tmp_path, seed):
+def test_acknowledged_data_survives_random_takeovers(new_store, seed):
     rng = random.Random(seed)
-    base = LocalStore(tmp_path)
+    base = new_store()
     init_log(base)
     acked = set()
     new_owner = []
